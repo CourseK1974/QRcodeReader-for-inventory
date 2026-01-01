@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QRコード棚卸アプリ</title>
+    <script src="https://unpkg.com/html5-qrcode"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+            text-align: center;
+            font-size: 24px;
+        }
+        
+        .section {
+            margin-bottom: 25px;
+            padding: 15px;
+            background: #f9f9f9;
+            border-radius: 8px;
+        }
+        
+        .section h2 {
+            font-size: 18px;
+            margin-bottom: 15px;
+            color: #555;
+        }
+        
+        #qr-reader {
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 15px;
+        }
+        
+        .button {
+            width: 100%;
+            padding: 15px;
+            font-size: 16px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-bottom: 10px;
+            font-weight: bold;
+            transition: background-color 0.3s;
+        }
+        
+        .button-primary {
+            background-color: #007bff;
+            color: white;
+        }
+        
+        .button-primary:hover {
+            background-color: #0056b3;
+        }
+        
+        .button-success {
+            background-color: #28a745;
+            color: white;
+        }
+        
+        .button-success:hover {
+            background-color: #218838;
+        }
+        
+        .button-danger {
+            background-color: #dc3545;
+            color: white;
+        }
+        
+        .button-danger:hover {
+            background-color: #c82333;
+        }
+        
+        .button-secondary {
+            background-color: #6c757d;
+            color: white;
+        }
+        
+        .button-secondary:hover {
+            background-color: #5a6268;
+        }
+        
+        .input-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #555;
+            font-weight: bold;
+        }
+        
+        input[type="text"],
+        input[type="number"] {
+            width: 100%;
+            padding: 12px;
+            font-size: 16px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+        }
+        
+        input[type="number"] {
+            -webkit-appearance: none;
+            -moz-appearance: textfield;
+        }
+        
+        .inventory-list {
+            margin-top: 15px;
+        }
+        
+        .inventory-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            margin-bottom: 8px;
+        }
+        
+        .inventory-item-code {
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .inventory-item-qty {
+            color: #007bff;
+            font-weight: bold;
+        }
+        
+        .count-badge {
+            display: inline-block;
+            background: #007bff;
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: bold;
+        }
+        
+        .status-message {
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            text-align: center;
+            font-weight: bold;
+        }
+        
+        .status-success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .status-error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📦 QRコード棚卸アプリ</h1>
+        
+        <!-- QRコードスキャナー -->
+        <div class="section">
+            <h2>📷 QRコードスキャン</h2>
+            <div id="qr-reader" class="hidden"></div>
+            <button id="start-scan" class="button button-primary">カメラを起動</button>
+            <button id="stop-scan" class="button button-secondary hidden">スキャン停止</button>
+        </div>
+        
+        <!-- 手入力フォーム -->
+        <div class="section">
+            <h2>⌨️ 手入力</h2>
+            <div id="status-message" class="hidden"></div>
+            <div class="input-group">
+                <label for="product-code">商品コード</label>
+                <input type="text" id="product-code" placeholder="商品コードを入力">
+            </div>
+            <div class="input-group">
+                <label for="quantity">数量</label>
+                <input type="number" id="quantity" value="1" min="1">
+            </div>
+            <button id="add-manual" class="button button-success">追加</button>
+        </div>
+        
+        <!-- 在庫リスト -->
+        <div class="section">
+            <h2>📋 入力済みデータ <span id="item-count" class="count-badge">0件</span></h2>
+            <div id="inventory-list" class="inventory-list"></div>
+        </div>
+        
+        <!-- アクション -->
+        <div class="section">
+            <button id="download-csv" class="button button-primary">CSVダウンロード</button>
+            <button id="clear-all" class="button button-danger">全データクリア</button>
+        </div>
+    </div>
+
+    <script>
+        // データ保存用（商品コード: 数量）
+        let inventoryData = {};
+        
+        // QRコードスキャナー
+        let html5QrCode = null;
+        
+        // DOM要素
+        const qrReaderDiv = document.getElementById('qr-reader');
+        const startScanBtn = document.getElementById('start-scan');
+        const stopScanBtn = document.getElementById('stop-scan');
+        const productCodeInput = document.getElementById('product-code');
+        const quantityInput = document.getElementById('quantity');
+        const addManualBtn = document.getElementById('add-manual');
+        const inventoryList = document.getElementById('inventory-list');
+        const itemCount = document.getElementById('item-count');
+        const downloadCsvBtn = document.getElementById('download-csv');
+        const clearAllBtn = document.getElementById('clear-all');
+        const statusMessage = document.getElementById('status-message');
+        
+        // QRコードスキャン開始
+        startScanBtn.addEventListener('click', () => {
+            qrReaderDiv.classList.remove('hidden');
+            startScanBtn.classList.add('hidden');
+            stopScanBtn.classList.remove('hidden');
+            
+            html5QrCode = new Html5Qrcode("qr-reader");
+            
+            html5QrCode.start(
+                { facingMode: "environment" },
+                {
+                    fps: 10,
+                    qrbox: { width: 250, height: 250 }
+                },
+                (decodedText) => {
+                    // QRコード読み取り成功
+                    addInventoryItem(decodedText, 1);
+                    showStatus(`商品コード: ${decodedText} を追加しました`, 'success');
+                },
+                (errorMessage) => {
+                    // エラーは無視（継続的にスキャン）
+                }
+            ).catch((err) => {
+                showStatus('カメラの起動に失敗しました', 'error');
+                console.error(err);
+            });
+        });
+        
+        // QRコードスキャン停止
+        stopScanBtn.addEventListener('click', () => {
+            if (html5QrCode) {
+                html5QrCode.stop().then(() => {
+                    qrReaderDiv.classList.add('hidden');
+                    startScanBtn.classList.remove('hidden');
+                    stopScanBtn.classList.add('hidden');
+                }).catch((err) => {
+                    console.error(err);
+                });
+            }
+        });
+        
+        // 手入力で追加
+        addManualBtn.addEventListener('click', () => {
+            const code = productCodeInput.value.trim();
+            const qty = parseInt(quantityInput.value);
+            
+            if (code === '') {
+                showStatus('商品コードを入力してください', 'error');
+                return;
+            }
+            
+            if (qty < 1) {
+                showStatus('数量は1以上を入力してください', 'error');
+                return;
+            }
+            
+            addInventoryItem(code, qty);
+            showStatus(`商品コード: ${code} (数量: ${qty}) を追加しました`, 'success');
+            
+            // 入力フィールドをクリア
+            productCodeInput.value = '';
+            quantityInput.value = '1';
+        });
+        
+        // 在庫データに追加（同じ商品コードは数量加算）
+        function addInventoryItem(code, qty) {
+            if (inventoryData[code]) {
+                inventoryData[code] += qty;
+            } else {
+                inventoryData[code] = qty;
+            }
+            updateInventoryList();
+        }
+        
+        // 在庫リスト表示を更新
+        function updateInventoryList() {
+            inventoryList.innerHTML = '';
+            
+            const codes = Object.keys(inventoryData).sort();
+            
+            codes.forEach(code => {
+                const item = document.createElement('div');
+                item.className = 'inventory-item';
+                item.innerHTML = `
+                    <span class="inventory-item-code">${code}</span>
+                    <span class="inventory-item-qty">数量: ${inventoryData[code]}</span>
+                `;
+                inventoryList.appendChild(item);
+            });
+            
+            itemCount.textContent = `${codes.length}件`;
+        }
+        
+        // ステータスメッセージ表示
+        function showStatus(message, type) {
+            statusMessage.textContent = message;
+            statusMessage.className = `status-message status-${type}`;
+            statusMessage.classList.remove('hidden');
+            
+            setTimeout(() => {
+                statusMessage.classList.add('hidden');
+            }, 3000);
+        }
+        
+        // CSVダウンロード
+        downloadCsvBtn.addEventListener('click', () => {
+            if (Object.keys(inventoryData).length === 0) {
+                showStatus('ダウンロードするデータがありません', 'error');
+                return;
+            }
+            
+            // CSV生成
+            let csv = '商品コード,数量\n';
+            const codes = Object.keys(inventoryData).sort();
+            codes.forEach(code => {
+                csv += `${code},${inventoryData[code]}\n`;
+            });
+            
+            // ダウンロード
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            
+            const now = new Date();
+            const filename = `inventory_${now.getFullYear()}${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}_${String(now.getHours()).padStart(2,'0')}${String(now.getMinutes()).padStart(2,'0')}.csv`;
+            
+            link.setAttribute('href', url);
+            link.setAttribute('download', filename);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            showStatus('CSVファイルをダウンロードしました', 'success');
+        });
+        
+        // 全データクリア
+        clearAllBtn.addEventListener('click', () => {
+            if (Object.keys(inventoryData).length === 0) {
+                showStatus('クリアするデータがありません', 'error');
+                return;
+            }
+            
+            if (confirm('全てのデータを削除しますか？')) {
+                inventoryData = {};
+                updateInventoryList();
+                showStatus('全データをクリアしました', 'success');
+            }
+        });
+        
+        // 初期表示
+        updateInventoryList();
+    </script>
+</body>
+</html>
