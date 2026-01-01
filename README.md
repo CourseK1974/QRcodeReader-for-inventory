@@ -1,0 +1,1 @@
+# QRcodeReade-rfor-inventory
