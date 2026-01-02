@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>QRコード棚卸アプリ</title>
+    <title>QRコードスキャン入力棚卸アプリ</title>
     <script src="https://unpkg.com/html5-qrcode"></script>
     <style>
         * {
@@ -209,7 +209,7 @@
             </div>
             <div class="input-group">
                 <label for="quantity">数量</label>
-                <input type="number" id="quantity" value="1" min="1">
+                <input type="number" id="quantity" placeholder="数量を入力" min="1">
             </div>
             <button id="add-manual" class="button button-success">追加</button>
         </div>
@@ -308,7 +308,7 @@
                 return;
             }
             
-            if (qty < 1) {
+            if (!quantityInput.value || qty < 1 || isNaN(qty)) {
                 showStatus('数量は1以上を入力してください', 'error');
                 return;
             }
@@ -318,7 +318,7 @@
             
             // 入力フィールドをクリア
             productCodeInput.value = '';
-            quantityInput.value = '1';
+            quantityInput.value = '';
         });
         
         // 在庫データに追加（同じ商品コードは数量加算）
