@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>資材棚卸用QRコードスキャン＆つけたてアプリ</title>
+    <title>QRコード棚卸アプリ</title>
     <script src="https://unpkg.com/html5-qrcode"></script>
     <style>
         * {
@@ -189,7 +189,7 @@
 </head>
 <body>
     <div class="container">
-        <h1>📦 資材棚卸用QRコードスキャン＆つけたてアプリ</h1>
+        <h1>📦 QRコード棚卸アプリ</h1>
         
         <!-- QRコードスキャナー -->
         <div class="section">
@@ -368,15 +368,17 @@
                 return;
             }
             
-            // CSV生成
+            // CSV生成（BOM付きUTF-8でExcelが正しく認識できるように）
             let csv = '商品コード,数量\n';
             const codes = Object.keys(inventoryData).sort();
             codes.forEach(code => {
                 csv += `${code},${inventoryData[code]}\n`;
             });
             
-            // ダウンロード
-            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            // BOM（Byte Order Mark）を追加してExcelが正しくUTF-8として認識できるようにする
+            const bom = new Uint8Array([0xEF, 0xBB, 0xBF]);
+            const csvBlob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const blob = new Blob([bom, csvBlob], { type: 'text/csv;charset=utf-8;' });
             const link = document.createElement('a');
             const url = URL.createObjectURL(blob);
             
