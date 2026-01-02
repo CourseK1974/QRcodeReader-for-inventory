@@ -262,9 +262,19 @@
                     qrbox: { width: 250, height: 250 }
                 },
                 (decodedText) => {
-                    // QRコード読み取り成功
-                    addInventoryItem(decodedText, 1);
-                    showStatus(`商品コード: ${decodedText} を追加しました`, 'success');
+                    // QRコード読み取り成功 - 商品コード欄に入力
+                    productCodeInput.value = decodedText;
+                    quantityInput.focus();
+                    showStatus(`商品コード: ${decodedText} を読み取りました`, 'success');
+                    
+                    // スキャンを停止
+                    if (html5QrCode) {
+                        html5QrCode.stop().then(() => {
+                            qrReaderDiv.classList.add('hidden');
+                            startScanBtn.classList.remove('hidden');
+                            stopScanBtn.classList.add('hidden');
+                        });
+                    }
                 },
                 (errorMessage) => {
                     // エラーは無視（継続的にスキャン）
