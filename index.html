@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>QRコード棚卸アプリ</title>
+    <title>資材棚卸用QRコードスキャナーアプリ</title>
     <script src="https://unpkg.com/html5-qrcode"></script>
     <style>
         * {
@@ -236,7 +236,7 @@
 </head>
 <body>
     <div class="container">
-        <h1>📦 QRコード棚卸アプリ</h1>
+        <h1>📦資材棚卸用QRコードスキャナーアプリ </h1>
         
         <!-- QRコードスキャナー -->
         <div class="section">
@@ -379,11 +379,13 @@
             updateInventoryList();
         }
         
-        // 在庫リスト表示を更新
+        // 在庫リスト表示を更新（最新のデータが上に表示される）
         function updateInventoryList() {
             inventoryList.innerHTML = '';
             
-            inventoryData.forEach((item, index) => {
+            // 逆順で表示（最新が上）
+            for (let i = inventoryData.length - 1; i >= 0; i--) {
+                const item = inventoryData[i];
                 const div = document.createElement('div');
                 div.className = 'inventory-item';
                 div.innerHTML = `
@@ -392,14 +394,17 @@
                         <span class="inventory-item-qty"> - 数量: ${item.qty}</span>
                     </div>
                     <div class="inventory-item-actions">
-                        <button class="button-small button-edit" onclick="editItem(${index})">編集</button>
-                        <button class="button-small button-delete" onclick="deleteItem(${index})">削除</button>
+                        <button class="button-small button-edit" onclick="editItem(${i})">編集</button>
+                        <button class="button-small button-delete" onclick="deleteItem(${i})">削除</button>
                     </div>
                 `;
                 inventoryList.appendChild(div);
-            });
+            }
             
             itemCount.textContent = `${inventoryData.length}件`;
+            
+            // リストを一番上にスクロール（最新データが見える）
+            inventoryList.scrollTop = 0;
         }
         
         // ステータスメッセージ表示
