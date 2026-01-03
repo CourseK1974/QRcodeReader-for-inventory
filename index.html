@@ -232,9 +232,9 @@
         }
     </style>
 </head>
-<body>
+<body>A
     <div class="container">
-        <h1>資材棚卸用QRコードスキャナーアプリ</h1>
+        <h1>📦 資材棚卸用QRコードスキャナーアプリ</h1>
         
         <!-- QRコードスキャナー -->
         <div class="section">
@@ -304,12 +304,7 @@
                 { facingMode: "environment" },
                 {
                     fps: 3,
-                    qrbox: 250,
-                    aspectRatio: 1.0,
-                    disableFlip: false,
-                    videoConstraints: {
-                        focusMode: "continuous"
-                    }
+                    qrbox: 250
                 },
                 (decodedText) => {
                     // QRコード読み取り成功 - 商品コード欄に入力
