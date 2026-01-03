@@ -232,7 +232,7 @@
         }
     </style>
 </head>
-<body>A
+<body>
     <div class="container">
         <h1>📦 資材棚卸用QRコードスキャナーアプリ</h1>
         
@@ -301,7 +301,12 @@
             html5QrCode = new Html5Qrcode("qr-reader");
             
             html5QrCode.start(
-                { facingMode: "environment" },
+                { 
+                    facingMode: "environment",
+                    advanced: [
+                        { focusMode: "continuous" }
+                    ]
+                },
                 {
                     fps: 3,
                     qrbox: 250
