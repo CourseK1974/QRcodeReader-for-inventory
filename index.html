@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>資材棚卸用QRコードスキャナーアプリ</title>
+    <title>資材棚卸用QRコードスキャナーアプリ</title>
     <script src="https://unpkg.com/html5-qrcode"></script>
     <style>
         * {
@@ -52,6 +52,15 @@
             border-radius: 8px;
             overflow: hidden;
             margin-bottom: 15px;
+        }
+        
+        #qr-reader video {
+            border-radius: 8px;
+        }
+        
+        /* QRコードスキャン枠のスタイル */
+        #qr-reader__scan_region {
+            border: 3px solid #007bff !important;
         }
         
         .button {
@@ -140,6 +149,42 @@
             border: 1px solid #ddd;
             border-radius: 8px;
             margin-bottom: 8px;
+        }
+        
+        .inventory-item-info {
+            flex: 1;
+        }
+        
+        .inventory-item-actions {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .button-small {
+            padding: 6px 12px;
+            font-size: 14px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        
+        .button-edit {
+            background-color: #ffc107;
+            color: #000;
+        }
+        
+        .button-edit:hover {
+            background-color: #e0a800;
+        }
+        
+        .button-delete {
+            background-color: #dc3545;
+            color: white;
+        }
+        
+        .button-delete:hover {
+            background-color: #c82333;
         }
         
         .inventory-item-code {
@@ -259,7 +304,7 @@
                 { facingMode: "environment" },
                 {
                     fps: 10,
-                    qrbox: { width: 300, height: 150 }
+                    qrbox: 250
                 },
                 (decodedText) => {
                     // QRコード読み取り成功 - 商品コード欄に入力
@@ -341,8 +386,14 @@
                 const item = document.createElement('div');
                 item.className = 'inventory-item';
                 item.innerHTML = `
-                    <span class="inventory-item-code">${code}</span>
-                    <span class="inventory-item-qty">数量: ${inventoryData[code]}</span>
+                    <div class="inventory-item-info">
+                        <span class="inventory-item-code">${code}</span>
+                        <span class="inventory-item-qty"> - 数量: ${inventoryData[code]}</span>
+                    </div>
+                    <div class="inventory-item-actions">
+                        <button class="button-small button-edit" onclick="editItem('${code}')">編集</button>
+                        <button class="button-small button-delete" onclick="deleteItem('${code}')">削除</button>
+                    </div>
                 `;
                 inventoryList.appendChild(item);
             });
@@ -409,9 +460,34 @@
             }
         });
         
+        // 編集機能
+        function editItem(code) {
+            const newQty = prompt(`商品コード: ${code}\n新しい数量を入力してください:`, inventoryData[code]);
+            
+            if (newQty === null) return; // キャンセル
+            
+            const qty = parseInt(newQty);
+            if (isNaN(qty) || qty < 1) {
+                showStatus('数量は1以上の数値を入力してください', 'error');
+                return;
+            }
+            
+            inventoryData[code] = qty;
+            updateInventoryList();
+            showStatus(`商品コード: ${code} の数量を ${qty} に変更しました`, 'success');
+        }
+        
+        // 削除機能
+        function deleteItem(code) {
+            if (confirm(`商品コード: ${code} を削除しますか？`)) {
+                delete inventoryData[code];
+                updateInventoryList();
+                showStatus(`商品コード: ${code} を削除しました`, 'success');
+            }
+        }
+        
         // 初期表示
         updateInventoryList();
     </script>
 </body>
 </html>
-
