@@ -301,7 +301,12 @@
             html5QrCode = new Html5Qrcode("qr-reader");
             
             html5QrCode.start(
-                { facingMode: "environment" },
+                { 
+                    facingMode: "environment",
+                    advanced: [
+                        { focusMode: "continuous" }
+                    ]
+                },
                 {
                     fps: 3,
                     qrbox: 250
