@@ -234,7 +234,8 @@
 </head>
 <body>
     <div class="container">
-        <h1>📦 資材棚卸用QRコードスキャナーアプリ</h1>
+        <h1>📦 資材棚卸用<br>
+             QRコードスキャナーアプリ</h1>
         
         <!-- QRコードスキャナー -->
         <div class="section">
@@ -273,8 +274,8 @@
     </div>
 
     <script>
-        // データ保存用（商品コード: 数量）
-        let inventoryData = {};
+        // データ保存用（入力順を保持するため配列で管理）
+        let inventoryData = [];
         
         // QRコードスキャナー
         let html5QrCode = null;
@@ -373,10 +374,11 @@
         
         // 在庫データに追加（同じ商品コードは数量加算）
         function addInventoryItem(code, qty) {
-            if (inventoryData[code]) {
-                inventoryData[code] += qty;
+            const existingItem = inventoryData.find(item => item.code === code);
+            if (existingItem) {
+                existingItem.qty += qty;
             } else {
-                inventoryData[code] = qty;
+                inventoryData.push({ code: code, qty: qty });
             }
             updateInventoryList();
         }
@@ -385,25 +387,23 @@
         function updateInventoryList() {
             inventoryList.innerHTML = '';
             
-            const codes = Object.keys(inventoryData).sort();
-            
-            codes.forEach(code => {
-                const item = document.createElement('div');
-                item.className = 'inventory-item';
-                item.innerHTML = `
+            inventoryData.forEach((item, index) => {
+                const div = document.createElement('div');
+                div.className = 'inventory-item';
+                div.innerHTML = `
                     <div class="inventory-item-info">
-                        <span class="inventory-item-code">${code}</span>
-                        <span class="inventory-item-qty"> - 数量: ${inventoryData[code]}</span>
+                        <span class="inventory-item-code">${item.code}</span>
+                        <span class="inventory-item-qty"> - 数量: ${item.qty}</span>
                     </div>
                     <div class="inventory-item-actions">
-                        <button class="button-small button-edit" onclick="editItem('${code}')">編集</button>
-                        <button class="button-small button-delete" onclick="deleteItem('${code}')">削除</button>
+                        <button class="button-small button-edit" onclick="editItem(${index})">編集</button>
+                        <button class="button-small button-delete" onclick="deleteItem(${index})">削除</button>
                     </div>
                 `;
-                inventoryList.appendChild(item);
+                inventoryList.appendChild(div);
             });
             
-            itemCount.textContent = `${codes.length}件`;
+            itemCount.textContent = `${inventoryData.length}件`;
         }
         
         // ステータスメッセージ表示
@@ -419,16 +419,15 @@
         
         // CSVダウンロード
         downloadCsvBtn.addEventListener('click', () => {
-            if (Object.keys(inventoryData).length === 0) {
+            if (inventoryData.length === 0) {
                 showStatus('ダウンロードするデータがありません', 'error');
                 return;
             }
             
             // CSV生成（BOM付きUTF-8でExcelが正しく認識できるように）
             let csv = '商品コード,数量\n';
-            const codes = Object.keys(inventoryData).sort();
-            codes.forEach(code => {
-                csv += `${code},${inventoryData[code]}\n`;
+            inventoryData.forEach(item => {
+                csv += `${item.code},${item.qty}\n`;
             });
             
             // BOM（Byte Order Mark）を追加してExcelが正しくUTF-8として認識できるようにする
@@ -453,21 +452,22 @@
         
         // 全データクリア
         clearAllBtn.addEventListener('click', () => {
-            if (Object.keys(inventoryData).length === 0) {
+            if (inventoryData.length === 0) {
                 showStatus('クリアするデータがありません', 'error');
                 return;
             }
             
             if (confirm('全てのデータを削除しますか？')) {
-                inventoryData = {};
+                inventoryData = [];
                 updateInventoryList();
                 showStatus('全データをクリアしました', 'success');
             }
         });
         
         // 編集機能
-        function editItem(code) {
-            const newQty = prompt(`商品コード: ${code}\n新しい数量を入力してください:`, inventoryData[code]);
+        function editItem(index) {
+            const item = inventoryData[index];
+            const newQty = prompt(`商品コード: ${item.code}\n新しい数量を入力してください:`, item.qty);
             
             if (newQty === null) return; // キャンセル
             
@@ -477,17 +477,18 @@
                 return;
             }
             
-            inventoryData[code] = qty;
+            inventoryData[index].qty = qty;
             updateInventoryList();
-            showStatus(`商品コード: ${code} の数量を ${qty} に変更しました`, 'success');
+            showStatus(`商品コード: ${item.code} の数量を ${qty} に変更しました`, 'success');
         }
         
         // 削除機能
-        function deleteItem(code) {
-            if (confirm(`商品コード: ${code} を削除しますか？`)) {
-                delete inventoryData[code];
+        function deleteItem(index) {
+            const item = inventoryData[index];
+            if (confirm(`商品コード: ${item.code} を削除しますか？`)) {
+                inventoryData.splice(index, 1);
                 updateInventoryList();
-                showStatus(`商品コード: ${code} を削除しました`, 'success');
+                showStatus(`商品コード: ${item.code} を削除しました`, 'success');
             }
         }
         
