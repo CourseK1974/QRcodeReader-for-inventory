@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>資材棚卸用QRコードスキャナーアプリ</title>
+    <title>QRコード棚卸アプリ</title>
     <script src="https://unpkg.com/html5-qrcode"></script>
     <style>
         * {
@@ -155,6 +155,16 @@
             flex: 1;
         }
         
+        .inventory-item-code {
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .inventory-item-qty {
+            color: #007bff;
+            font-weight: bold;
+        }
+        
         .inventory-item-actions {
             display: flex;
             gap: 8px;
@@ -185,16 +195,6 @@
         
         .button-delete:hover {
             background-color: #c82333;
-        }
-        
-        .inventory-item-code {
-            font-weight: bold;
-            color: #333;
-        }
-        
-        .inventory-item-qty {
-            color: #007bff;
-            font-weight: bold;
         }
         
         .count-badge {
@@ -234,7 +234,7 @@
 </head>
 <body>
     <div class="container">
-        <h1>📦 資材棚卸用QRコードスキャナーアプリ</h1>
+        <h1>📦 QRコード棚卸アプリ</h1>
         
         <!-- QRコードスキャナー -->
         <div class="section">
@@ -416,6 +416,34 @@
             }, 3000);
         }
         
+        // 編集機能
+        function editItem(index) {
+            const item = inventoryData[index];
+            const newQty = prompt(`商品コード: ${item.code}\n新しい数量を入力してください:`, item.qty);
+            
+            if (newQty === null) return; // キャンセル
+            
+            const qty = parseInt(newQty);
+            if (isNaN(qty) || qty < 1) {
+                showStatus('数量は1以上の数値を入力してください', 'error');
+                return;
+            }
+            
+            inventoryData[index].qty = qty;
+            updateInventoryList();
+            showStatus(`商品コード: ${item.code} の数量を ${qty} に変更しました`, 'success');
+        }
+        
+        // 削除機能
+        function deleteItem(index) {
+            const item = inventoryData[index];
+            if (confirm(`商品コード: ${item.code} を削除しますか？`)) {
+                inventoryData.splice(index, 1);
+                updateInventoryList();
+                showStatus(`商品コード: ${item.code} を削除しました`, 'success');
+            }
+        }
+        
         // CSVダウンロード
         downloadCsvBtn.addEventListener('click', () => {
             if (inventoryData.length === 0) {
@@ -462,34 +490,6 @@
                 showStatus('全データをクリアしました', 'success');
             }
         });
-        
-        // 編集機能
-        function editItem(index) {
-            const item = inventoryData[index];
-            const newQty = prompt(`商品コード: ${item.code}\n新しい数量を入力してください:`, item.qty);
-            
-            if (newQty === null) return; // キャンセル
-            
-            const qty = parseInt(newQty);
-            if (isNaN(qty) || qty < 1) {
-                showStatus('数量は1以上の数値を入力してください', 'error');
-                return;
-            }
-            
-            inventoryData[index].qty = qty;
-            updateInventoryList();
-            showStatus(`商品コード: ${item.code} の数量を ${qty} に変更しました`, 'success');
-        }
-        
-        // 削除機能
-        function deleteItem(index) {
-            const item = inventoryData[index];
-            if (confirm(`商品コード: ${item.code} を削除しますか？`)) {
-                inventoryData.splice(index, 1);
-                updateInventoryList();
-                showStatus(`商品コード: ${item.code} を削除しました`, 'success');
-            }
-        }
         
         // 初期表示
         updateInventoryList();
