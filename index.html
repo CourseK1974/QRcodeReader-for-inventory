@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>資材棚卸用QRコードスキャナーアプリ</title>
+        <title>資材棚卸用QRコードスキャナーアプリ</title>
     <script src="https://unpkg.com/html5-qrcode"></script>
     <style>
         * {
@@ -259,7 +259,7 @@
                 { facingMode: "environment" },
                 {
                     fps: 10,
-                    qrbox: { width: 100, height: 400 }
+                    qrbox: { width: 300, height: 150 }
                 },
                 (decodedText) => {
                     // QRコード読み取り成功 - 商品コード欄に入力
@@ -414,3 +414,4 @@
     </script>
 </body>
 </html>
+
