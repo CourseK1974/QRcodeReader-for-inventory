@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>資材棚卸用QRコードスキャナーアプリ</title>
+    <title>QRコード棚卸アプリ</title>
     <script src="https://unpkg.com/html5-qrcode"></script>
     <style>
         * {
@@ -236,7 +236,7 @@
 </head>
 <body>
     <div class="container">
-        <h1>📦資材棚卸用QRコードスキャナーアプリ </h1>
+        <h1>📦 QRコード棚卸アプリ</h1>
         
         <!-- QRコードスキャナー -->
         <div class="section">
@@ -377,6 +377,9 @@
                 inventoryData.push({ code: code, qty: qty });
             }
             updateInventoryList();
+            
+            // ページを一番上にスクロール
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
         
         // 在庫リスト表示を更新（最新のデータが上に表示される）
